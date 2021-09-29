@@ -21,7 +21,7 @@ jobs:
         env:
           SONAR_URL: https://sonarqube.ness-ie-practice.com
           SONAR_TOKEN: afa3388a02a9966c446ba10461ee2ef5aa5eca40
-          SONAR_PROJECT_KEY: react-shopping-cart
+          SONAR_PROJECT_KEY: vegetable-shopping-cart
         uses: sonarsource/sonarcloud-github-action@master
         with:
           args: >
