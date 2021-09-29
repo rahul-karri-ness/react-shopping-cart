@@ -33,19 +33,19 @@ jobs:
       - name: Install Dependencies
         run: |
           npm install
-      # - name: Upload to S3
-      #   run: |
-      #     aws s3 ls
-      #     aws s3 sync ./build s3://calculator-react-app
-      #   env: 
-      #     AWS_ACCESS_KEY_ID: AKIAS6YU7IZMG6NODG43
-      #     AWS_SECRET_ACCESS_KEY: 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
-      #     AWS_DEFAULT_REGION: 'us-east-1'
+      - name: Upload to S3
+        run: |
+          aws s3 ls
+          aws s3 sync ./build s3://calculator-react-app
+        env: 
+          AWS_ACCESS_KEY_ID: AKIAS6YU7IZMG6NODG43
+          AWS_SECRET_ACCESS_KEY: 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
+          AWS_DEFAULT_REGION: 'us-east-1'
       # def CFID="""\$(aws cloudfront list-distributions --query "DistributionList.Items[?Aliases.Items!=null] | [?contains(Aliases.Items, 'app-demo.ness-ie-practice.com')].Id | [0]" | tr -d '"')"""
       # sh "echo ${CFID}"
       - name: Cloud Distribution
         run: |
-          aws cloudfront list-distributions
+          aws cloudfront list-distributions --query "DistributionList.Items[?Aliases.Items!=null] | [?contains(Aliases.Items, 'app-demo.ness-ie-practice.com')].Id | [0]"
         env: 
           AWS_ACCESS_KEY_ID: AKIAS6YU7IZMG6NODG43
           AWS_SECRET_ACCESS_KEY: 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
