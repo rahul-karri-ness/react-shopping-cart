@@ -1,0 +1,39 @@
+name: veg-shopping-cart
+on:
+  push:
+    branches:
+      - 'main'
+  pull_request: {}
+jobs:
+  build_test_release:
+    runs-on: ubuntu-latest
+    name: Setup
+    strategy:
+      matrix:
+        node-version: [14.x]
+    steps:
+      - uses: actions/checkout@v2
+      - name: use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Run an analysis of the PR
+        env:
+          SONAR_URL: https://sonarqube.ness-ie-practice.com
+          SONAR_TOKEN: afa3388a02a9966c446ba10461ee2ef5aa5eca40
+          SONAR_PROJECT_KEY: react-shopping-cart
+        uses: sonarsource/sonarcloud-github-action@master
+        with:
+          args: >
+            -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY  }}
+            -Dsonar.sources=.
+            -Dsonar.css.node=.
+            -Dsonar.host.url=${{ env.SONAR_URL  }}
+            -Dsonar.login=${{ env.SONAR_TOKEN  }}
+      - name: install dependencies
+        run: | 
+          sudo apt-get install g++ build-essential
+          rm -rf node_modules
+          npm install
+      - name: install
+        run: ls
