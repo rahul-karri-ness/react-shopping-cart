@@ -33,7 +33,7 @@ jobs:
       - name: Install Dependencies
         run: |
           npm cache clean --force
-          npm install && REACT_APP_ENVIRONMENT=production npm run build
+          npm install && CI=false REACT_APP_ENVIRONMENT=production npm run build
       - name: Upload to S3
         run: |
           ls
