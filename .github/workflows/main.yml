@@ -45,7 +45,7 @@ jobs:
       # sh "echo ${CFID}"
       - name: Cloud Distribution
         run: |
-          CFID=aws cloudfront list-distributions --query "DistributionList.Items[?Aliases.Items!=null] | [?contains(Aliases.Items, 'app-demo.ness-ie-practice.com')].Id | [0]"
+          CFID=$(aws cloudfront list-distributions --query "DistributionList.Items[?Aliases.Items!=null] | [?contains(Aliases.Items, 'app-demo.ness-ie-practice.com')].Id | [0]" | tr -d '"')
           echo ${CFID}
         env: 
           AWS_ACCESS_KEY_ID: AKIAS6YU7IZMG6NODG43
