@@ -32,7 +32,8 @@ jobs:
             -Dsonar.login=${{ env.SONAR_TOKEN  }}
       - name: Install Dependencies
         run: |
-          npm install && npm run build
+          npm cache clean --force
+          npm install && REACT_APP_ENVIRONMENT=production npm run build
       - name: Upload to S3
         run: |
           ls
