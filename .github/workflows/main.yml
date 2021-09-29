@@ -46,7 +46,7 @@ jobs:
         run: |
           CFID=$(aws cloudfront list-distributions --query "DistributionList.Items[?Aliases.Items!=null] | [?contains(Aliases.Items, 'app-demo.ness-ie-practice.com')].Id | [0]" | tr -d '"')
           echo ${CFID}
-          INVID=$(aws cloudfront create-invalidation --distribution-id $CFID --paths "/*" | json Invalidation.Id)
+          INVID=$(aws cloudfront create-invalidation --distribution-id $CFID --paths "/*" | jq -r .Invalidation.Id)
           echo ${INVID}
           INVWT=$(aws cloudfront wait invalidation-completed --distribution-id $CFID --id $INVID)
           echo ${INVWT}
