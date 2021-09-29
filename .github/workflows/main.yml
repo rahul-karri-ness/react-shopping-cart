@@ -17,36 +17,36 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
-      - name: Run an analysis of the PR
-        env:
-          SONAR_URL: https://sonarqube.ness-ie-practice.com
-          SONAR_TOKEN: afa3388a02a9966c446ba10461ee2ef5aa5eca40
-          SONAR_PROJECT_KEY: vegetable-shopping-cart
-        uses: sonarsource/sonarcloud-github-action@master
-        with:
-          args: >
-            -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY  }}
-            -Dsonar.sources=.
-            -Dsonar.css.node=.
-            -Dsonar.host.url=${{ env.SONAR_URL  }}
-            -Dsonar.login=${{ env.SONAR_TOKEN  }}
-      - name: Install Dependencies
-        run: |
-          npm install
-      - name: Upload to S3
-        run: |
-          aws s3 ls
-          aws s3 sync ./build s3://calculator-react-app
-        env: 
-          AWS_ACCESS_KEY_ID: AKIAS6YU7IZMIUNJLW7X
-          AWS_SECRET_ACCESS_KEY: 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
-          AWS_DEFAULT_REGION: 'us-east-1'
+      # - name: Run an analysis of the PR
+      #   env:
+      #     SONAR_URL: https://sonarqube.ness-ie-practice.com
+      #     SONAR_TOKEN: afa3388a02a9966c446ba10461ee2ef5aa5eca40
+      #     SONAR_PROJECT_KEY: vegetable-shopping-cart
+      #   uses: sonarsource/sonarcloud-github-action@master
+      #   with:
+      #     args: >
+      #       -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY  }}
+      #       -Dsonar.sources=.
+      #       -Dsonar.css.node=.
+      #       -Dsonar.host.url=${{ env.SONAR_URL  }}
+      #       -Dsonar.login=${{ env.SONAR_TOKEN  }}
+      # - name: Install Dependencies
+      #   run: |
+      #     npm install
+      # - name: Upload to S3
+      #   run: |
+      #     aws s3 ls
+      #     aws s3 sync ./build s3://calculator-react-app
+      #   env: 
+      #     AWS_ACCESS_KEY_ID: AKIAS6YU7IZMG6NODG43
+      #     AWS_SECRET_ACCESS_KEY: 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
+      #     AWS_DEFAULT_REGION: 'us-east-1'
       # def CFID="""\$(aws cloudfront list-distributions --query "DistributionList.Items[?Aliases.Items!=null] | [?contains(Aliases.Items, 'app-demo.ness-ie-practice.com')].Id | [0]" | tr -d '"')"""
       # sh "echo ${CFID}"
       - name: Cloud Distribution
         run: |
           aws cloudfront list-distributions --query "DistributionList.Items[?Aliases.Items!=null] | [?contains(Aliases.Items, 'app-demo.ness-ie-practice.com')].Id | [0]"
         env: 
-          AWS_ACCESS_KEY_ID: AKIAS6YU7IZMIUNJLW7X
-          AWS_SECRET_ACCESS_KEY: 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
+          AWS_ACCESS_KEY_ID: AKIAS6YU7IZMG6NODG43
+          AWS_SECRET_ACCESS_KEY: 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
           AWS_DEFAULT_REGION: 'us-east-1'
