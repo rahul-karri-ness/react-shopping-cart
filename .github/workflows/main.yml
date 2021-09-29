@@ -44,7 +44,7 @@ jobs:
           AWS_DEFAULT_REGION: 'us-east-1'
       - name: Cloud Distribution
         run: |
-          CFID=$(aws cloudfront list-distributions --query "DistributionList.Items[?Aliases.Items!=null] | [?contains(Aliases.Items, 'app-demo.ness-ie-practice.com')].Id | [0]" | tr -d '"')
+          CFID=$(aws cloudfront list-distributions --query "DistributionList.Items[?Aliases.Items!=null] | [?contains(Aliases.Items, 'shopping-cart.ness-ie-practice.com')].Id | [0]" | tr -d '"')
           echo ${CFID}
           INVID=$(aws cloudfront create-invalidation --distribution-id $CFID --paths "/*" | jq -r .Invalidation.Id)
           echo ${INVID}
