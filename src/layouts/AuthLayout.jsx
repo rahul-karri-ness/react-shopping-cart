@@ -10,7 +10,7 @@ const AuthLayout = ({ children }) => {
             <img
               className="logo"
               src="https://res.cloudinary.com/sivadass/image/upload/v1493547373/dummy-logo/Veggy.png"
-              alt="Veggy Brand Logo"
+              alt="Veggy Brand Logo Image"
             />
           </Link>
         </div>
