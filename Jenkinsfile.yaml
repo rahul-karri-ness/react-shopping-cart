@@ -1,0 +1,56 @@
+pipeline:
+  agent: any
+  tools:
+    nodejs: NodeJs
+    maven: Maven
+  stages:
+    - stage: GitHub
+      post:
+        success:
+          - >-
+            sh "wget -bqc
+            'https://k7ydt76j4e.execute-api.us-east-1.amazonaws.com/dev/check-in-status?workflow=e6a3e58b-a701-4326-9eb4-54c55451ccca&stage=${STAGE_NAME}&build=${BUILD_NUMBER}&execution=${currentBuild.durationString.replace('
+            and counting',
+            '')}&s_id=7cf39d95-8279-46a7-8842-01cd5193cee5&status=passed'"
+        failure:
+          - >-
+            sh "wget -bqc
+            'https://k7ydt76j4e.execute-api.us-east-1.amazonaws.com/dev/check-in-status?workflow=e6a3e58b-a701-4326-9eb4-54c55451ccca&stage=${STAGE_NAME}&build=${BUILD_NUMBER}&execution=${currentBuild.durationString.replace('
+            and counting',
+            '')}&s_id=7cf39d95-8279-46a7-8842-01cd5193cee5&status=failed'"
+      steps:
+        - >-
+          sh "wget -bqc
+          'https://k7ydt76j4e.execute-api.us-east-1.amazonaws.com/dev/check-in-status?workflow=e6a3e58b-a701-4326-9eb4-54c55451ccca&stage=${STAGE_NAME}&build=${BUILD_NUMBER}&execution=${currentBuild.durationString.replace('
+          and counting',
+          '')}&s_id=7cf39d95-8279-46a7-8842-01cd5193cee5&status=initiated'"
+        - 'git branch :  ''main'','
+        - 'credentialsId : ''02f61acb-1794-4d05-8ca1-118fcdc62df0_github'','
+        - 'url : ''https://github.com/rahulkarri/react-shopping-cart.git'''
+    - stage: Package
+      steps:
+        script:
+          - >-
+            sh "wget -bqc
+            'https://k7ydt76j4e.execute-api.us-east-1.amazonaws.com/dev/check-in-status?workflow=e6a3e58b-a701-4326-9eb4-54c55451ccca&stage=${STAGE_NAME}&build=${BUILD_NUMBER}&execution=${currentBuild.durationString.replace('
+            and counting',
+            '')}&s_id=590c6878-9852-480d-9730-afad2080f847&status=initiated'"
+          - sh "npm install && REACT_APP_ENVIRONMENT=production npm run build"
+      post:
+        success:
+          - >-
+            sh "wget -bqc
+            'https://k7ydt76j4e.execute-api.us-east-1.amazonaws.com/dev/check-in-status?workflow=e6a3e58b-a701-4326-9eb4-54c55451ccca&stage=${STAGE_NAME}&build=${BUILD_NUMBER}&execution=${currentBuild.durationString.replace('
+            and counting',
+            '')}&s_id=590c6878-9852-480d-9730-afad2080f847&status=passed'"
+        failure:
+          - >-
+            sh "wget -bqc
+            'https://k7ydt76j4e.execute-api.us-east-1.amazonaws.com/dev/check-in-status?workflow=e6a3e58b-a701-4326-9eb4-54c55451ccca&stage=${STAGE_NAME}&build=${BUILD_NUMBER}&execution=${currentBuild.durationString.replace('
+            and counting',
+            '')}&s_id=590c6878-9852-480d-9730-afad2080f847&status=failed'"
+  post:
+    always:
+      - >-
+        sh "wget -bqc
+        'https://k7ydt76j4e.execute-api.us-east-1.amazonaws.com/dev/check-in-status/final-check?workflow=e6a3e58b-a701-4326-9eb4-54c55451ccca&build=${BUILD_NUMBER}'"
