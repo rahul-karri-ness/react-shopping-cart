@@ -1,4 +1,4 @@
-name: git-hub-actions
+name: sample-github-actions
 'on':
   push:
     branches:
@@ -14,17 +14,13 @@ jobs:
           node-version: 14.x
         uses: actions/setup-node@v2
       - name: SonarQube
+        env:
+          SONAR_URL: https://sonarqube.ness-ie-practice.com
+          SONAR_TOKEN: afa3388a02a9966c446ba10461ee2ef5aa5eca40
+          SONAR_PROJECT_KEY: vegetable-shopping-cart
+        uses: sonarsource/sonarcloud-github-action@master
         with:
           args: >-
             -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY  }} -Dsonar.sources=.
             -Dsonar.css.node=. -Dsonar.host.url=${{ env.SONAR_URL  }}
             -Dsonar.login=${{ env.SONAR_TOKEN  }}
-        uses: sonarsource/sonarcloud-github-action@master
-        env:
-          SONAR_URL: https://sonarqube.ness-ie-practice.com
-          SONAR_PROJECT_KEY: vegetable-shopping-cart
-          SONAR_TOKEN: afa3388a02a9966c446ba10461ee2ef5aa5eca40
-      - name: Package
-        run: >
-          npm install -g yarn && yarn install &&
-          REACT_APP_ENVIRONMENT=production yarn run build
