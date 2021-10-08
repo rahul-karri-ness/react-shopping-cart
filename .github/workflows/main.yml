@@ -24,6 +24,6 @@ jobs:
         uses: sonarsource/sonarcloud-github-action@master
         with:
           args: >-
-            sonar-scanner -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY  }}
+            -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY  }}
             -Dsonar.sources=. -Dsonar.css.node=. -Dsonar.host.url=${{
             env.SONAR_URL  }} -Dsonar.login=${{ env.SONAR_TOKEN  }}
