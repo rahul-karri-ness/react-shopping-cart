@@ -1,9 +1,8 @@
 name: veg-shopping-cart
-on:
+'on':
   push:
     branches:
-      - 'main'
-  pull_request: {}
+      - main
 jobs:
   build_test_release:
     runs-on: ubuntu-latest
@@ -17,7 +16,13 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
-      - name: Install Dependencies
-        run: |-
-          npm cache clean --force
-          npm install && CI=false REACT_APP_ENVIRONMENT=production npm run build
+      - name: Run an analysis of the PR
+        env:
+          SONAR_URL: https://sonarqube.ness-ie-practice.com
+          SONAR_TOKEN: afa3388a02a9966c446ba10461ee2ef5aa5eca40
+          SONAR_PROJECT_KEY: vegetable-shopping-cart
+        with:
+          args: >-
+            sonar-scanner -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY  }}
+            -Dsonar.sources=. -Dsonar.css.node=. -Dsonar.host.url=${{
+            env.SONAR_URL  }} -Dsonar.login=${{ env.SONAR_TOKEN  }}
