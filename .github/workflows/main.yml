@@ -2,7 +2,7 @@ name: veg-shopping-cart
 'on':
   push:
     branches:
-      - dev
+      - main
 jobs:
   build_test_release:
     runs-on: ubuntu-latest
