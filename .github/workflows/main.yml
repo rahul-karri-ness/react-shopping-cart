@@ -24,7 +24,7 @@ jobs:
           SONAR_URL: https://sonarqube.ness-ie-practice.com
           SONAR_PROJECT_KEY: vegetable-shopping-cart
           SONAR_TOKEN: afa3388a02a9966c446ba10461ee2ef5aa5eca40
-      - name: Check Mark
+      - name: Fortify
         run: |-
           echo "Started Scanning"
                   echo 'Security Scanning Started....'
