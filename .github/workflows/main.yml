@@ -1,4 +1,4 @@
-name: github-actions
+name: git-hub-actions
 'on':
   push:
     branches:
@@ -25,5 +25,6 @@ jobs:
           SONAR_PROJECT_KEY: vegetable-shopping-cart
           SONAR_TOKEN: afa3388a02a9966c446ba10461ee2ef5aa5eca40
       - name: Package
-        run: |
-          npm install && REACT_APP_ENVIRONMENT=production npm run build
+        run: >
+          npm install -g yarn && yarn install &&
+          REACT_APP_ENVIRONMENT=production yarn run build
