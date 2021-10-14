@@ -12,6 +12,8 @@ jobs:
       - name: Checkout
         with:
           node-version: 14.x
+          java-version: '11'
+          distribution: 'adopt'
         uses: actions/setup-node@v2
       - name: SonarQube
         with:
