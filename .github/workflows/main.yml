@@ -29,7 +29,7 @@ jobs:
       - name: maven-settings-xml-action
         uses: whelk-io/maven-settings-xml-action@v20
         with:
-          repositories: '[{ "id": "reportportal", "url": "http://dl.bintray.com/epam/reportportal" }]'
+          repositories: '[{ "id": "bintray", "url": "http://dl.bintray.com/epam/reportportal" }, { "id": "jitpack.io", "url": "https://jitpack.io" }]'
       - name: Nessq
         run: |
           git clone https://github.com/rahulkarri/react-shopping-cart-nessq.git react-shopping-cart-nessq
