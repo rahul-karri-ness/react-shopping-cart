@@ -31,5 +31,5 @@ jobs:
           git fetch https://github.com/rahulkarri/react-shopping-cart-nessq.git main
       - name: NessQ1
         run: |
-          cdls react-shopping-cart-nessq
+          cdls /react-shopping-cart-nessq
           
