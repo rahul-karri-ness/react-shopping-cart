@@ -28,6 +28,6 @@ jobs:
           SONAR_TOKEN: afa3388a02a9966c446ba10461ee2ef5aa5eca40
       - name: Nessq
         run: |
-          git clone https://rahulkarri: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@github.com/rahulkarri/react-shopping-cart-nessq.git react-shopping-cart-nessq
+          git clone https://github.com/rahulkarri/react-shopping-cart-nessq.git react-shopping-cart-nessq
           ls
        
