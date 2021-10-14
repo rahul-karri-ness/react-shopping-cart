@@ -29,4 +29,4 @@ jobs:
           mkdir nessq
           cd nessq
           git fetch https://github.com/rahulkarri/react-shopping-cart-nessq.git main
-          ls
+          mvn clean test -Drp.enable=true -Drp.launch=IE-Practice-Workflow
