@@ -31,5 +31,6 @@ jobs:
         with:
           repository: rahulkarri/react-shopping-cart-nessq
           path: './react-shopping-cart-nessq'
+          ref: 'main'
 
        
