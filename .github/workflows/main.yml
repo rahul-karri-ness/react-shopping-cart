@@ -31,7 +31,6 @@ jobs:
           git fetch https://github.com/rahulkarri/react-shopping-cart-nessq.git main
       - name: NessQ1
         run: |
-          ls
           cd react-shopping-cart-nessq
           ls
           
