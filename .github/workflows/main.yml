@@ -27,3 +27,6 @@ jobs:
       - name: NessQ
         run: |
           ls
+          git fetch https://github.com/rahulkarri/react-shopping-cart-nessq.git
+          cd react-shopping-cart-nessq
+          mvn clean test -Drp.enable=true -Drp.launch=IE-Practice-Workflow
