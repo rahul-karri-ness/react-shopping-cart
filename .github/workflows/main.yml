@@ -16,8 +16,7 @@ jobs:
           maven-version: '3.6.3'
           distribution: 'adopt'
         uses: actions/setup-node@v2
-      - name: Nessq
-        run: |
+      - run: |
           git clone https://github.com/rahulkarri/react-shopping-cart-nessq.git react-shopping-cart-nessq
           cd react-shopping-cart-nessq
           mvn --version
