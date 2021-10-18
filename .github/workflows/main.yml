@@ -9,13 +9,13 @@ jobs:
     name: build_release
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/setup-java@v1
       - name: Checkout
         with:
           node-version: 14.x                    
           distribution: 'adopt'
           java-version: '1.8'
-          maven-version: '3.6.3'
-        uses: actions/setup-java@v1
+          maven-version: "3.6.3"
       - name: NessQ
         run: |
           git clone https://github.com/rahulkarri/react-shopping-cart-nessq.git react-shopping-cart-nessq
