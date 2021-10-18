@@ -12,7 +12,7 @@ jobs:
       - name: Checkout
         with:
           node-version: 14.x
-        uses: actions/setup-java@v1
+        uses: actions/setup-node@v2
       - name: NessQ
         run: |
           git clone https://github.com/rahulkarri/react-shopping-cart-nessq.git react-shopping-cart-nessq
@@ -21,7 +21,6 @@ jobs:
           tar xzvf apache-maven-3.6.3-bin.tar.gz
           export PATH=apache-maven-3.6.3/bin:$PATH
           mvn --version
-          java -version
           mvn clean test -Drp.enable=true -Drp.launch=IE-Practice-React-Shopping
           
           
