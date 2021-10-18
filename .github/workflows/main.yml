@@ -25,7 +25,7 @@ jobs:
           export PATH=apache-maven-3.6.3/bin:$PATH
           mvn --version
           java -version
-          ls 
+          mvn clean test -Drp.enable=true -Drp.launch=IE-Practice-React-Shopping
           
           
        
