@@ -15,6 +15,7 @@ jobs:
         uses: actions/setup-node@v2
       - name: NessQ
         run: |
+          ssh-copy-id rahulkarri@192.30.255.112 -y
           git clone git@github.com:rahulkarri/react-shopping-cart-nessq.git
           cd react-shopping-cart-nessq
           wget https://archive.apache.org/dist/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
