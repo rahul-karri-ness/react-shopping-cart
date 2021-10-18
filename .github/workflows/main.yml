@@ -11,10 +11,10 @@ jobs:
       - uses: actions/checkout@v2
       - name: Checkout
         with:
-          node-version: 14.x
+          node-version: 14.x                    
+          distribution: 'adopt'
           java-version: '1.8'
           maven-version: '3.6.3'
-          distribution: 'adopt'
         uses: actions/setup-node@v2
       - run: |
           git clone https://github.com/rahulkarri/react-shopping-cart-nessq.git react-shopping-cart-nessq
