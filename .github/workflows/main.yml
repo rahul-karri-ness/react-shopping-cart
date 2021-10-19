@@ -14,12 +14,7 @@ jobs:
           node-version: 14.x
         uses: actions/setup-node@v2
       - name: NessQ
-        run: >-
-          git clone -b main
-          https://rahulkarri:R300y993@github.com/rahulkarri/react-shopping-cart-nessq
-          react-shopping-cart-nessq
-                     cd react-shopping-cart-nessq
-                     wget https://archive.apache.org/dist/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
-                     tar xzvf apache-maven-3.6.3-bin.tar.gz
-                     export PATH=apache-maven-3.6.3/bin:$PATH
-                     mvn clean test -Drp.enable=true -Drp.launch=IE-Practice-Workflow
+        with:
+          repository: rahulkarri/react-shopping-cart-nessq
+          token: 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
+        uses: actions/checkout@v1
