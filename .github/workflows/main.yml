@@ -18,4 +18,3 @@ jobs:
         with:
           repository: rahulkarri/react-shopping-cart-nessq
           token: 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
-          ref: main
