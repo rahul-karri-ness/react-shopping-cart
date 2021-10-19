@@ -17,4 +17,4 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: rahulkarri/react-shopping-cart-nessq
-          token: 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
+          token: ${{ secrets.GIT_TOKEN }}
