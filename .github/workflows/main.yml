@@ -14,8 +14,8 @@ jobs:
           node-version: 14.x
         uses: actions/setup-node@v2
       - name: NessQ
+        uses: actions/checkout@v2
         with:
           repository: rahulkarri/react-shopping-cart-nessq
           token: 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
           ref: main
-        uses: actions/checkout@v1
