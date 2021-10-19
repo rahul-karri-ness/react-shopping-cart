@@ -1,4 +1,4 @@
-name: GitHubActions-Demo
+name: test-githubactions
 'on':
   push:
     branches:
@@ -14,10 +14,12 @@ jobs:
           node-version: 14.x
         uses: actions/setup-node@v2
       - name: NessQ
-        run: |
-          git clone https://github.com/rahulkarri/react-shopping-cart-nessq.git react-shopping-cart-nessq
-          cd react-shopping-cart-nessq
-          wget https://archive.apache.org/dist/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
-          tar xzvf apache-maven-3.6.3-bin.tar.gz
-          export PATH=apache-maven-3.6.3/bin:$PATH
-          mvn clean test -Drp.enable=true -Drp.launch=IE-Practice-React-Shopping
+        run: >-
+          git clone -b main
+          https://github.com/rahulkarri/react-shopping-cart-nessq
+          react-shopping-cart-nessq
+                      cd react-shopping-cart-nessq
+                      wget https://archive.apache.org/dist/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
+                      tar xzvf apache-maven-3.6.3-bin.tar.gz
+                      export PATH=apache-maven-3.6.3/bin:$PATH
+                      mvn clean test -Drp.enable=true -Drp.launch=IE-Practice-Workflow
