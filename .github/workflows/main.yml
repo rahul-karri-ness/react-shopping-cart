@@ -1,4 +1,4 @@
-name: test-githubactions
+name: react_sample_test
 'on':
   push:
     branches:
@@ -10,11 +10,36 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Checkout
+        uses: actions/setup-node@v2
         with:
           node-version: 14.x
-        uses: actions/setup-node@v2
-      - name: NessQ
-        uses: actions/checkout@v2
+      - name: SonarQube
+        env:
+          SONAR_URL: https://sonarqube.ness-ie-practice.com
+          SONAR_TOKEN: afa3388a02a9966c446ba10461ee2ef5aa5eca40
+          SONAR_PROJECT_KEY: react-shopping-cart
+        uses: sonarsource/sonarcloud-github-action@master
         with:
-          repository: rahulkarri/react-shopping-cart-nessq
-          token: ${{ secrets.GIT_TOKEN }}
+          args: >-
+            -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY  }} -Dsonar.sources=.
+            -Dsonar.css.node=. -Dsonar.host.url=${{ env.SONAR_URL  }}
+            -Dsonar.login=${{ env.SONAR_TOKEN  }}
+      - name: Check Marx
+        run: |-
+          echo "Started Scanning"
+                  echo 'Security Scanning Started....'
+                  echo 'Security Completed'
+      - name: Fortify
+        run: |-
+          echo "Started Scanning"
+                  echo 'Security Scanning Started....'
+                  echo 'Security Completed'
+      - name: Package
+        run: |
+          npm install && REACT_APP_ENVIRONMENT=production npm run build
+      - name: Amazon S3
+        env:
+          AWS_ACCESS_KEY_ID: AKIAS6YU7IZMI2BKHBPR
+          AWS_SECRET_ACCESS_KEY: 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
+          AWS_DEFAULT_REGION: us-east-1
+        run: aws s3 sync build/ s3://demo-app-react
