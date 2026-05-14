@@ -1,115 +1,126 @@
-# Spec: ATN-1806 — Account Creation / User Registration
-
-## Overview
-
-**Jira Ticket:** [ATN-1806](https://ness-nde.atlassian.net/browse/ATN-1806)  
+# Spec: Account Creation — User Registration
+**Ticket:** ATN-1806  
 **Type:** Story  
 **Priority:** Major  
-**Assignee:** Rahul Karri
-
-> As a user, I want to create an account so that I can save my shopping preferences.
+**Status:** In Progress  
 
 ---
 
-## Functional Requirements
+## 1. Overview
+
+As a user, I want to create an account so that I can save my shopping preferences and access personalised features of the Veggy shopping platform.
+
+---
+
+## 2. Functional Requirements
 
 | # | Requirement |
 |---|-------------|
-| FR-1 | The application shall provide a dedicated registration page accessible from the login page via a "Sign Up" link. |
+| FR-1 | The application shall provide a registration form accessible from the login/auth page. |
 | FR-2 | The registration form shall include fields for: **Full Name**, **Email Address**, and **Password**. |
-| FR-3 | The password field shall enforce the following security rules: minimum 8 characters, at least one numeric digit, and at least one special character (e.g., `!@#$%^&*`). |
-| FR-4 | The system shall display inline, field-level error messages when the user submits invalid or incomplete data. |
-| FR-5 | The system shall prevent registration if the submitted email address is already associated with an existing account. |
-| FR-6 | Upon successful registration, the system shall send a confirmation email to the user's provided email address. |
-| FR-7 | Upon successful registration, the user shall be redirected to an appropriate page (e.g., login page or home page with a success notification). |
-| FR-8 | All form fields shall be validated both on blur (field-level) and on submit (form-level). |
+| FR-3 | The password field shall enforce security requirements: minimum 8 characters, at least one numeric digit, and at least one special character. |
+| FR-4 | The system shall display inline, field-level error messages for invalid or missing inputs. |
+| FR-5 | The system shall display an error message when the submitted email address is already registered. |
+| FR-6 | Upon successful registration, the user shall receive a confirmation email. |
+| FR-7 | The registration form shall be accessible from the existing "Sign Up Now!" link on the login page. |
+| FR-8 | After successful registration, the user shall be redirected appropriately (e.g., to the login page or home page). |
 
 ---
 
-## User Stories
+## 3. User Stories
 
 ### Story 1 — Access the Registration Form
+> **As a** new visitor,  
+> **I want to** navigate to a registration form from the login page,  
+> **So that** I can create a new account.
 
-**Given** I am on the Login (`/auth`) page,  
+**Given** I am on the `/auth` page (login screen),  
 **When** I click the "Sign Up Now!" link,  
-**Then** I am navigated to the Registration page (`/register`),  
-**And** I see a form with fields for Full Name, Email Address, and Password.
+**Then** I should be taken to a registration form with fields for Full Name, Email, and Password.
 
 ---
 
-### Story 2 — Successful Account Registration
+### Story 2 — Successful Registration
+> **As a** new user,  
+> **I want to** submit my details and create an account,  
+> **So that** I can access the platform's personalised features.
 
-**Given** I am on the Registration page,  
-**When** I fill in a valid Full Name, a valid Email Address, and a Password that meets all security requirements,  
+**Given** I am on the registration form,  
+**When** I enter a valid Full Name, a valid Email, and a Password that meets security requirements,  
 **And** I submit the form,  
-**Then** my account is created,  
-**And** I receive a confirmation email at the address I provided,  
-**And** I am redirected to the login page (or home page) with a success message.
+**Then** my account should be created,  
+**And** I should receive a confirmation email,  
+**And** I should be redirected to the login page (or home page).
 
 ---
 
-### Story 3 — Password Validation Enforcement
+### Story 3 — Password Validation
+> **As a** new user,  
+> **I want to** be informed when my password does not meet security requirements,  
+> **So that** I can correct it before submitting.
 
-**Given** I am on the Registration page,  
-**When** I enter a password that does not meet the security requirements (e.g., fewer than 8 characters, no number, or no special character),  
-**And** I attempt to submit the form or move focus away from the password field,  
-**Then** an inline error message is displayed beneath the password field describing the unmet requirement.
+**Given** I am on the registration form,  
+**When** I enter a password that is fewer than 8 characters, or lacks a number, or lacks a special character,  
+**And** I attempt to submit or blur the field,  
+**Then** an inline error message should describe the specific requirement that was not met.
 
 ---
 
-### Story 4 — Duplicate Email Prevention
+### Story 4 — Duplicate Email Validation
+> **As a** returning user who already has an account,  
+> **I want to** be informed that my email is already registered,  
+> **So that** I can log in instead of creating a duplicate account.
 
-**Given** I am on the Registration page,  
-**When** I enter an email address that is already registered in the system,  
+**Given** I am on the registration form,  
+**When** I enter an email address that is already associated with an existing account,  
 **And** I submit the form,  
-**Then** an error message is displayed informing me that the email is already in use,  
-**And** my account is not created.
+**Then** an error message should be displayed indicating the email is already in use.
 
 ---
 
-### Story 5 — Invalid Input Error Messages
+### Story 5 — Invalid Input Handling
+> **As a** user filling in the registration form,  
+> **I want to** see clear error messages for any invalid inputs,  
+> **So that** I know exactly what to fix.
 
-**Given** I am on the Registration page,  
-**When** I submit the form with one or more empty or invalid fields (e.g., malformed email, empty name),  
-**Then** inline error messages are displayed for each invalid field,  
-**And** the form is not submitted.
-
----
-
-## Acceptance Criteria
-
-| # | Criterion | Priority |
-|---|-----------|----------|
-| AC-1 | Registration form is accessible at `/register` and contains Name, Email, and Password fields. | Must Have |
-| AC-2 | Password validation enforces: min 8 chars, at least 1 number, at least 1 special character. | Must Have |
-| AC-3 | A confirmation email is triggered upon successful registration. | Must Have |
-| AC-4 | Inline error messages appear for invalid inputs (empty fields, bad email format, weak password). | Must Have |
-| AC-5 | Submitting a duplicate email shows a clear error message and does not create a new account. | Must Have |
-| AC-6 | Successful registration redirects the user and shows a success notification. | Must Have |
-| AC-7 | All form fields show validation errors on blur and on submit. | Should Have |
-| AC-8 | The registration page uses the existing `AuthLayout` and matches the visual style of the login page. | Should Have |
+**Given** I am on the registration form,  
+**When** I submit the form with one or more empty or invalid fields,  
+**Then** each invalid field should display a descriptive inline error message,  
+**And** the form should not be submitted until all fields are valid.
 
 ---
 
-## Assumptions
+## 4. Acceptance Criteria
+
+| # | Criterion | Status |
+|---|-----------|--------|
+| AC-1 | User can access a registration form with fields for name, email, and password. | Required |
+| AC-2 | Password must meet security requirements: minimum 8 characters, includes at least one number and one special character. | Required |
+| AC-3 | User receives a confirmation email after successful registration. | Required |
+| AC-4 | Error messages are displayed for invalid inputs (e.g., email already in use, weak password, empty fields). | Required |
+
+---
+
+## 5. Assumptions
 
 | # | Assumption |
 |---|------------|
-| A-1 | Email confirmation is simulated on the frontend (e.g., a toast/alert notification) since no backend email service is currently integrated. |
-| A-2 | Duplicate email detection is handled client-side (mock/stub) as there is no live backend API in this repository. |
-| A-3 | The registration flow stores the new user in `localStorage` consistent with the existing `signIn` pattern in `contexts/auth.jsx`. |
-| A-4 | The "Full Name" field maps to a `name` property on the user object. |
-| A-5 | After successful registration, the user is automatically signed in and redirected to the home page (`/`). |
-| A-6 | No email uniqueness database exists; uniqueness is checked against the currently stored user in `localStorage`. |
+| A-1 | The confirmation email is triggered by a backend API call; the frontend is responsible only for initiating the request. |
+| A-2 | The "email already in use" error is returned by the backend API as an error response; the frontend displays it. |
+| A-3 | The registration route will be `/register` (a new route added to the existing React Router setup). |
+| A-4 | No email verification step (e.g., OTP) is required before account activation — a simple confirmation email suffices. |
+| A-5 | The existing `AuthProvider` context and `useLocalStorage` hook will be extended to support registration state. |
+| A-6 | No third-party authentication (OAuth, SSO) is in scope for this ticket. |
+| A-7 | The backend API endpoint for registration is assumed to be `POST /api/auth/register`; actual endpoint to be confirmed with backend team. |
 
 ---
 
-## Out of Scope
+## 6. Out of Scope
 
-- Backend API integration for user persistence (database, REST/GraphQL endpoints).
-- Real email delivery service integration (SendGrid, SES, etc.).
-- OAuth / social login (Google, Facebook, etc.).
-- Email verification link flow (click-to-verify).
-- Account management (profile editing, password reset).
-- CAPTCHA or bot protection.
-- Multi-step registration wizard.
+- Social login / OAuth (Google, Facebook, etc.)
+- Email OTP / two-factor authentication
+- Account profile management after registration
+- Password strength meter UI (beyond inline validation messages)
+- Admin-side user management
+- CAPTCHA / bot protection
+- Terms & Conditions / Privacy Policy acceptance checkbox (unless added as a future AC)
