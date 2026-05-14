@@ -1,195 +1,272 @@
-# Tasks: Account Creation — User Registration
-**Ticket:** ATN-1806  
-**Order:** TDD — each test task precedes its implementation task  
-**[PARALLEL]** = can be worked on simultaneously with other [PARALLEL] tasks  
+# Tasks: ATN-1806 — Account Creation / User Registration
+
+> **TDD Order:** Every test task precedes the implementation task it covers.  
+> **[PARALLEL]** marks tasks that can be executed concurrently.  
+> Tasks are grouped by story checkpoint.
 
 ---
 
-## Phase 1 — Auth Context Extension
+## Phase 0 — Setup & Stale Test Fix
 
-### TASK-01 — Write tests for auth context registration reducer
+### TASK-001 — Fix stale App.test.js
+**Type:** Fix  
+**File:** `src/App.test.js`  
+**Description:** The existing test asserts `screen.getByText(/learn react/i)` which does not match any rendered content. Update the test to assert something meaningful (e.g., the app renders without crashing).  
+**Acceptance:** `npm test` passes with no failures before any new code is written.
+
+---
+
+## Phase 1 — Auth Context Extension (TDD)
+
+### TASK-002 — Write tests for auth context registration actions [PARALLEL]
 **Type:** Test  
-**File:** `src/contexts/auth.test.jsx` *(create)*  
-**Covers:** REGISTER_REQUEST, REGISTER_SUCCESS, REGISTER_FAILURE reducer cases; `register` action creator  
+**File:** `src/contexts/auth.test.js` *(create new)*  
+**Description:** Write unit tests for the auth reducer and `register` action creator BEFORE implementing them.
 
-Test cases to write:
-- [ ] `REGISTER_REQUEST` sets `isRegistering: true` and clears `registrationError`
-- [ ] `REGISTER_SUCCESS` sets `isRegistering: false` and `registrationError: null`
-- [ ] `REGISTER_FAILURE` sets `isRegistering: false` and stores error message in `registrationError`
-- [ ] `register` action creator dispatches `REGISTER_REQUEST` then `REGISTER_SUCCESS` on API success
-- [ ] `register` action creator dispatches `REGISTER_REQUEST` then `REGISTER_FAILURE` on API error
-- [ ] `register` action creator re-throws error after dispatching `REGISTER_FAILURE`
-- [ ] Unknown action type still throws error (existing behaviour preserved)
+**Test cases to cover:**
+- ✅ Happy path: `REGISTER_SUCCESS` sets `registrationSuccess: true`, stores user in `registeredUsers`
+- ✅ Happy path: `REGISTER_REQUEST` sets `isRegistering: true`
+- ✅ Negative path: `REGISTER_FAILURE` sets `registrationError` with message, `registrationSuccess: false`
+- ✅ Edge case: Duplicate email triggers `REGISTER_FAILURE` with "This email address is already in use."
+- ✅ Edge case: `register` with empty `registeredUsers` array (first user) succeeds
+- ✅ Edge case: `register` with `null` registeredUsers falls back gracefully
 
-**Acceptance checkpoint:** All 7 tests fail (red) before implementation.
+**Depends on:** TASK-001
 
 ---
 
-### TASK-02 — Extend auth context with registration state and actions [PARALLEL]
+### TASK-003 — Extend auth context with registration state and actions [PARALLEL]
 **Type:** Implementation  
 **File:** `src/contexts/auth.jsx` *(modify)*  
-**Depends on:** TASK-01 (tests must exist first)  
+**Description:** Implement the registration state, reducer cases, and `register` action creator.
 
-Changes:
-- [ ] Add `isRegistering: false` and `registrationError: null` to `initialState`
-- [ ] Add `REGISTER_REQUEST` case to reducer
-- [ ] Add `REGISTER_SUCCESS` case to reducer
-- [ ] Add `REGISTER_FAILURE` case to reducer
-- [ ] Add `import axios from "axios"` at top of file
-- [ ] Export `register` async action creator (dispatches REQUEST → SUCCESS/FAILURE, re-throws on error)
+**Changes:**
+1. Add to `initialState`:
+   ```js
+   isRegistering: false,
+   registrationSuccess: false,
+   registrationError: null
+   ```
+2. Add reducer cases:
+   - `REGISTER_REQUEST` → `{ ...state, isRegistering: true, registrationSuccess: false, registrationError: null }`
+   - `REGISTER_SUCCESS` → `{ ...state, isRegistering: false, registrationSuccess: true, registrationError: null }`
+   - `REGISTER_FAILURE` → `{ ...state, isRegistering: false, registrationSuccess: false, registrationError: action.payload.error }`
+3. Add `register(dispatch, userData, registeredUsers)` action creator:
+   - Dispatch `REGISTER_REQUEST`
+   - Check for duplicate email in `registeredUsers`
+   - If duplicate: dispatch `REGISTER_FAILURE` with error message
+   - If unique: append new user to `registeredUsers`, save to `localStorage`, dispatch `REGISTER_SUCCESS`
+   - Simulate email: `console.info("Confirmation email sent to:", userData.email)`
 
-**Acceptance checkpoint:** All TASK-01 tests pass (green).
-
----
-
-## Phase 2 — Registration Page
-
-### TASK-03 — Write tests for the registration page component [PARALLEL]
-**Type:** Test  
-**File:** `src/pages/register.test.jsx` *(create)*  
-**Covers:** Rendering, validation, form submission, error display  
-
-Test cases to write:
-
-**Rendering:**
-- [ ] Renders a form with Full Name, Email Address, and Password fields
-- [ ] Renders a "Create Account" submit button
-- [ ] Renders a "Sign In" link back to `/auth`
-- [ ] All input fields have associated labels (accessibility)
-
-**Validation — Happy Path:**
-- [ ] Submitting with valid name, email, and strong password calls the register action
-- [ ] Successful registration redirects to `/auth`
-- [ ] Form resets after successful submission
-
-**Validation — Negative Paths:**
-- [ ] Submitting with empty name shows "Full name is required" error
-- [ ] Submitting with empty email shows "Email address is required" error
-- [ ] Submitting with empty password shows "Password is required" error
-- [ ] Submitting with invalid email format shows "Please enter a valid email address" error
-- [ ] Submitting with password shorter than 8 characters shows min-length error
-- [ ] Submitting with password missing a number shows number requirement error
-- [ ] Submitting with password missing a special character shows special character requirement error
-
-**Edge Cases:**
-- [ ] API returns 409 — email field shows "This email address is already registered."
-- [ ] API returns generic 500 error — `registrationError` message is displayed with `role="alert"`
-- [ ] Submit button is disabled and shows "Creating Account..." while `isRegistering` is true
-- [ ] Name with only 1 character shows min-length error ("Name must be at least 2 characters")
-
-**Acceptance checkpoint:** All tests fail (red) before implementation.
+**Depends on:** TASK-002 (tests must be written first)
 
 ---
 
-### TASK-04 — Create registration page component
+### ✅ Checkpoint 1: Auth context tests pass for all registration reducer cases and action creators.
+
+---
+
+## Phase 2 — Constants Update
+
+### TASK-004 — Add passwordRegExp to constants [PARALLEL]
 **Type:** Implementation  
-**File:** `src/pages/register.jsx` *(create)*  
-**Depends on:** TASK-03 (tests must exist first), TASK-02 (auth context must be extended)  
+**File:** `src/constants/common.js` *(modify)*  
+**Description:** Export a `passwordRegExp` regex constant for use in Yup validation.
 
-Implementation steps:
-- [ ] Import React, Formik, Form, Field, useHistory, Yup, AuthDispatchContext, AuthStateContext, register, Input
-- [ ] Define `RegistrationSchema` with Yup: name (min 2, required), email (email, required), password (min 8, number match, special char match, required)
-- [ ] Create `RegisterPage` functional component
-- [ ] Consume `AuthDispatchContext` and `AuthStateContext` (for `isRegistering`, `registrationError`)
-- [ ] Use `useHistory` for post-registration redirect to `/auth`
-- [ ] Render Formik form with `initialValues: { name: "", email: "", password: "" }`
-- [ ] Render three `<Field component={Input}>` fields: name, email, password
-- [ ] Render API-level error message div with `role="alert"` when `registrationError` is set
-- [ ] Render submit button with `disabled={isRegistering}` and conditional label
-- [ ] Render "Sign In" link back to `/auth`
-- [ ] Handle 409 conflict: call `setFieldError("email", "This email address is already registered.")`
-- [ ] Export `RegisterPage` as default
+```js
+export const passwordRegExp = /^(?=.*[0-9])(?=.*[!@#$%^&*]).{8,}$/;
+```
 
-**Acceptance checkpoint:** All TASK-03 tests pass (green).
+**Note:** This regex is used in the Yup schema in TASK-006. No test file needed for a pure constant — it is covered by the Yup schema tests in TASK-005.
 
 ---
 
-## Phase 3 — Routing & Navigation
+## Phase 3 — RegisterForm Component (TDD)
 
-### TASK-05 — Write tests for routing and navigation [PARALLEL]
+### TASK-005 — Write tests for RegisterForm component [PARALLEL]
 **Type:** Test  
-**File:** `src/pages/register.test.jsx` *(extend)* and `src/pages/auth.test.jsx` *(create)*  
-**Covers:** Route accessibility, "Sign Up Now!" link navigation  
+**File:** `src/components/RegisterForm.test.jsx` *(create new)*  
+**Description:** Write unit and integration tests for the `RegisterForm` component BEFORE implementing it.
 
-Test cases to write:
-- [ ] Navigating to `/register` renders the `RegisterPage` component
-- [ ] Clicking "Sign Up Now!" on the auth page navigates to `/register`
-- [ ] Clicking "Sign In" on the register page navigates to `/auth`
+**Test cases to cover:**
+- ✅ Happy path: Renders all four fields (name, email, password, confirmPassword)
+- ✅ Happy path: Renders a "Register" submit button
+- ✅ Happy path: Renders a "Back to Login" link
+- ✅ Happy path: Valid form submission calls `register` action with correct data
+- ✅ Happy path: Success message is displayed after successful registration
+- ✅ Negative path: Empty form submission shows required field errors for all fields
+- ✅ Negative path: Invalid email format shows "Please enter a valid email address."
+- ✅ Negative path: Password < 8 chars shows "Password must be at least 8 characters."
+- ✅ Negative path: Password without number shows "Password must contain at least one number."
+- ✅ Negative path: Password without special char shows appropriate error
+- ✅ Negative path: Mismatched passwords shows "Passwords do not match."
+- ✅ Negative path: Duplicate email shows "This email address is already in use."
+- ✅ Edge case: Password exactly 8 chars with number and special char passes validation
+- ✅ Edge case: Name with exactly 2 characters passes validation
+- ✅ Edge case: Name with 1 character fails with "Name must be at least 2 characters."
 
-**Acceptance checkpoint:** All 3 tests fail (red) before implementation.
+**Depends on:** TASK-003
 
 ---
 
-### TASK-06 — Add /register route to App.js
+### TASK-006 — Create RegisterForm component
 **Type:** Implementation  
-**File:** `src/App.js` *(modify)*  
-**Depends on:** TASK-04 (RegisterPage must exist)  
+**File:** `src/components/RegisterForm.jsx` *(create new)*  
+**Description:** Implement the registration form as a standalone Formik component.
 
-Changes:
-- [ ] Import `RegisterPage` from `"pages/register"`
-- [ ] Add `<RouteWrapper path="/register" component={RegisterPage} layout={AuthLayout} />` inside `<Switch>` before the closing tag
+**Implementation details:**
+- Import `useContext` from React; consume `AuthDispatchContext` and `AuthStateContext`
+- Import `useLocalStorage` hook to read `registeredUsers`
+- Define `RegisterSchema` using Yup (name, email, password, confirmPassword)
+- Render Formik form with four `<Field component={Input} />` fields
+- On submit: call `register(authDispatch, { name, email, password }, registeredUsers)`
+- On `REGISTER_SUCCESS` (via `registrationSuccess` from context): show success message div with class `auth-success`
+- On duplicate email: use `setFieldError("email", "This email address is already in use.")`
+- Render "Already have an account? Sign In" link that calls `onSwitchToLogin` prop
+- Wrap submit in `try/catch`; log errors with `console.error`
 
-**Acceptance checkpoint:** `/register` route renders `RegisterPage` wrapped in `AuthLayout`.
+**Props:**
+```js
+RegisterForm.propTypes = {
+  onSwitchToLogin: PropTypes.func.isRequired
+}
+```
+
+**Depends on:** TASK-005 (tests must be written first), TASK-003, TASK-004
 
 ---
 
-### TASK-07 — Wire "Sign Up Now!" link in auth page
+### ✅ Checkpoint 2: RegisterForm renders correctly, all validation rules work, success/error states display properly.
+
+---
+
+## Phase 4 — Auth Page Update (TDD)
+
+### TASK-007 — Write tests for AuthPage view toggling [PARALLEL]
+**Type:** Test  
+**File:** `src/pages/auth.test.jsx` *(create new)*  
+**Description:** Write integration tests for the `AuthPage` component covering view toggling BEFORE implementing it.
+
+**Test cases to cover:**
+- ✅ Happy path: AuthPage renders Login form by default
+- ✅ Happy path: Clicking "Sign Up Now!" link renders the RegisterForm
+- ✅ Happy path: Clicking "Back to Login" from RegisterForm renders the Login form
+- ✅ Negative path: Login form is not visible when register view is active
+- ✅ Negative path: Register form is not visible when login view is active
+- ✅ Edge case: View toggle does not reset login form values (login form state preserved)
+- ✅ Edge case: Navigating to register and back to login clears registration success state
+
+**Depends on:** TASK-006
+
+---
+
+### TASK-008 — Update AuthPage to support view toggling
 **Type:** Implementation  
 **File:** `src/pages/auth.jsx` *(modify)*  
-**Depends on:** TASK-06 (route must exist)  
+**Description:** Update the auth page to toggle between Login and Register views.
 
-Changes:
-- [ ] Update `goToRegister` to call `history.push("/register")`
-- [ ] Remove `console.log("location => ", location)` debug statement (line 19)
+**Changes:**
+1. Add `import React, { useContext, useState } from "react"` (add `useState`)
+2. Add `import RegisterForm from "components/RegisterForm"`
+3. Add `const [view, setView] = useState("login")` inside `AuthPage`
+4. Implement `goToRegister`: `(e) => { e.preventDefault(); setView("register"); }`
+5. Add `goToLogin`: `(e) => { e.preventDefault(); setView("register"); }` → `setView("login")`
+6. Conditionally render:
+   ```jsx
+   {view === "register"
+     ? <RegisterForm onSwitchToLogin={goToLogin} />
+     : <Formik ...>{/* existing login form */}</Formik>
+   }
+   ```
+7. Remove `console.log("location => ", location)` debug statement
 
-**Acceptance checkpoint:** All TASK-05 routing tests pass (green).
+**Depends on:** TASK-007 (tests must be written first), TASK-006
 
 ---
 
-## Phase 4 — Quality & Verification
+### ✅ Checkpoint 3: AuthPage correctly toggles between Login and Register views. All navigation links work.
 
-### TASK-08 — Self-review and Definition of Done checklist [PARALLEL]
+---
+
+## Phase 5 — SCSS Updates
+
+### TASK-009 — Add registration styles to auth SCSS [PARALLEL]
+**Type:** Implementation  
+**File:** `src/assets/scss/pages/_auth.scss` *(modify)*  
+**Description:** Add styles for the success message and toggle link.
+
+**Styles to add:**
+```scss
+.auth-success {
+  background: $green-light-bg;
+  border: 1px solid $primary-green;
+  color: $primary-green;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  text-align: left;
+}
+
+.auth-toggle-link {
+  color: $primary-green;
+  text-decoration: underline;
+  cursor: pointer;
+  &:hover {
+    color: darken($primary-green, 10%);
+  }
+}
+```
+
+**Depends on:** None (can run in parallel with all other tasks)
+
+---
+
+## Phase 6 — Final Verification
+
+### TASK-010 — Run full test suite and verify build
+**Type:** Verification  
+**Description:** Run `npm test -- --watchAll=false` and `npm run build` to confirm:
+- All new tests pass
+- No existing tests are broken
+- Build completes without errors or warnings
+
+**Depends on:** TASK-001 through TASK-009
+
+---
+
+### TASK-011 — Self-review checklist
 **Type:** Review  
-**Covers:** All files created/modified in this ticket  
+**Description:** Perform a final code review pass against the Definition of Done.
 
-- [ ] All new unit tests pass (happy paths, negative paths, ≥3 edge cases per story)
-- [ ] All pre-existing tests still pass (no regression)
-- [ ] Application builds without errors or warnings (`npm run build`)
-- [ ] No `console.log`, `console.error`, or debug artifacts in new code
-- [ ] No dead code or commented-out blocks
-- [ ] All new functions have inline comments explaining purpose
-- [ ] No secrets, API keys, or sensitive data hardcoded
-- [ ] Password is never persisted to `localStorage`
-- [ ] Error messages are user-friendly and descriptive
-- [ ] All form inputs have accessible labels
-- [ ] Error messages use `role="alert"` for screen readers
-- [ ] Submit button disabled during async operation
-- [ ] New code follows existing architectural patterns (Context API, Formik, Yup, RouteWrapper)
+**Checklist:**
+- [ ] All new work has unit tests: happy paths, negative paths, ≥3 edge cases ✅
+- [ ] All tests in the app pass ✅
+- [ ] Application builds without errors or warnings ✅
+- [ ] No regression introduced — login flow unaffected ✅
+- [ ] Code self-reviewed: correctness, performance, security, maintainability ✅
+- [ ] No dead code, no `console.log` debug artifacts ✅
+- [ ] New functions and complex logic have inline comments ✅
+- [ ] No secrets, API keys, or sensitive data hardcoded ✅
+- [ ] New code follows existing architectural patterns ✅
+- [ ] Errors handled gracefully with meaningful user-facing messages ✅
 
----
-
-## Per-Story Checkpoints
-
-| Story | Tasks | Done When |
-|-------|-------|-----------|
-| Story 1 — Access Registration Form | TASK-05, TASK-06, TASK-07 | "Sign Up Now!" navigates to `/register`; form renders with all 3 fields |
-| Story 2 — Successful Registration | TASK-01, TASK-02, TASK-03, TASK-04 | Valid submission calls API, redirects to `/auth`, confirmation email triggered |
-| Story 3 — Password Validation | TASK-03, TASK-04 | Inline errors shown for short, no-number, no-special-char passwords |
-| Story 4 — Duplicate Email | TASK-03, TASK-04 | 409 response shows "email already registered" on email field |
-| Story 5 — Invalid Input Handling | TASK-03, TASK-04 | All empty/invalid fields show descriptive inline errors; form not submitted |
+**Depends on:** TASK-010
 
 ---
 
-## Task Dependency Graph
+## Task Summary Table
 
-```
-TASK-01 (test: auth context)
-    └── TASK-02 (impl: auth context)
-            └── TASK-04 (impl: register page)
-                    └── TASK-06 (impl: add route)
-                            └── TASK-07 (impl: wire link)
-
-TASK-03 (test: register page) ──── [PARALLEL with TASK-01]
-TASK-05 (test: routing)        ──── [PARALLEL with TASK-03]
-TASK-08 (review/DoD)           ──── [after all above complete]
-```
+| Task ID | Type | File | Parallel | Depends On |
+|---------|------|------|----------|-----------|
+| TASK-001 | Fix | `src/App.test.js` | No | — |
+| TASK-002 | Test | `src/contexts/auth.test.js` | Yes | TASK-001 |
+| TASK-003 | Impl | `src/contexts/auth.jsx` | Yes | TASK-002 |
+| TASK-004 | Impl | `src/constants/common.js` | Yes | — |
+| TASK-005 | Test | `src/components/RegisterForm.test.jsx` | Yes | TASK-003 |
+| TASK-006 | Impl | `src/components/RegisterForm.jsx` | No | TASK-005, TASK-003, TASK-004 |
+| TASK-007 | Test | `src/pages/auth.test.jsx` | Yes | TASK-006 |
+| TASK-008 | Impl | `src/pages/auth.jsx` | No | TASK-007, TASK-006 |
+| TASK-009 | Impl | `src/assets/scss/pages/_auth.scss` | Yes | — |
+| TASK-010 | Verify | — | No | TASK-001–009 |
+| TASK-011 | Review | — | No | TASK-010 |
