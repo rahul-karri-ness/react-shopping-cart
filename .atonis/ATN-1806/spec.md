@@ -1,12 +1,6 @@
-# Spec: ATN-1806 — Account Creation / User Registration
+# ATN-1806 - Account Creation - User Registration
 
 ## Overview
-
-**Ticket:** ATN-1806  
-**Title:** Account Creation - User Registration  
-**Type:** Story  
-**Priority:** Major  
-**Status:** In Progress  
 
 As a user, I want to create an account so that I can save my shopping preferences.
 
@@ -15,96 +9,64 @@ As a user, I want to create an account so that I can save my shopping preference
 ## Functional Requirements
 
 ### FR-1: Registration Form Access
-- The application must provide a dedicated registration page/view accessible from the login/auth page.
-- The registration form must contain the following fields:
-  - **Full Name** (text input, required)
-  - **Email Address** (email input, required)
-  - **Password** (password input, required)
-  - **Confirm Password** (password input, required)
+A user must be able to navigate to the registration page from the login page by clicking the "Sign Up Now!" link. The registration page must be accessible at the route `/register`.
 
-### FR-2: Password Security Requirements
-- Password must be a minimum of **8 characters**.
-- Password must contain at least **one numeric digit** (0–9).
-- Password must contain at least **one special character** (e.g., `!@#$%^&*`).
-- Confirm Password field must match the Password field exactly.
-- Validation errors must be shown inline, adjacent to the relevant field.
+### FR-2: Registration Form Fields
+The registration form must contain the following fields:
+- Full Name (text, required, minimum 2 characters)
+- Email Address (email, required, valid email format)
+- Password (password, required, minimum 8 characters, must include at least one number and one special character)
+- Confirm Password (password, required, must match the Password field)
 
-### FR-3: Successful Registration Flow
-- On successful form submission, the user receives a **confirmation email** to the provided address.
-- After submission, the user is shown a success message indicating that a confirmation email has been sent.
-- The user is not automatically logged in after registration (email confirmation required first).
+### FR-3: Password Security Requirements
+The password field must enforce the following rules:
+- Minimum 8 characters
+- At least one numeric digit
+- At least one special character (e.g., `!@#$%^&*`)
+- Confirm Password must match Password
 
-### FR-4: Error Handling & Inline Validation
-- If the email address is already registered, an error message must be displayed: *"This email address is already in use."*
-- All required fields must show inline validation errors when left empty on submit.
-- Password mismatch must show: *"Passwords do not match."*
-- Invalid email format must show: *"Please enter a valid email address."*
-- Password not meeting security requirements must show a descriptive error message.
+### FR-4: Successful Registration
+Upon successful form submission with valid data:
+- The user's registration data is persisted to localStorage under the key `registeredUsers`
+- A UI success message is displayed simulating a confirmation email notification
+- The user is automatically redirected to `/auth` after 2 seconds
 
-### FR-5: Navigation
-- The login page must include a link/button to navigate to the registration form.
-- The registration page must include a link to navigate back to the login page.
+### FR-5: Error Handling and Validation
+The form must display inline error messages for:
+- Empty required fields
+- Invalid email format
+- Email address already registered (case-insensitive duplicate check)
+- Password not meeting security requirements
+- Confirm Password not matching Password
 
 ---
 
 ## User Stories
 
-### Story 1: Access the Registration Form
+### Story 1: Accessing the Registration Form
+**Given** a user is on the login page at `/auth`
+**When** the user clicks the "Sign Up Now!" link
+**Then** the user is navigated to the registration form at `/register`
 
-**Given** I am on the login/auth page  
-**When** I click the "Sign Up Now!" link  
-**Then** I am navigated to the registration form  
-**And** I see fields for Full Name, Email, Password, and Confirm Password  
-
----
-
-### Story 2: Successful Account Registration
-
-**Given** I am on the registration form  
-**When** I fill in a valid Full Name, a unique Email, a Password meeting all security requirements, and a matching Confirm Password  
-**And** I click the "Register" button  
-**Then** my account is created  
-**And** I see a success message: *"Registration successful! Please check your email to confirm your account."*  
-**And** a confirmation email is sent to the provided email address  
-
----
+### Story 2: Successful Registration
+**Given** a user is on the registration page at `/register`
+**When** the user fills in a valid full name, a unique email address, a password meeting security requirements, and a matching confirm password, then submits the form
+**Then** the registration data is saved to localStorage under `registeredUsers`, a success message is displayed, and the user is redirected to `/auth` after 2 seconds
 
 ### Story 3: Password Validation Failure
+**Given** a user is on the registration page at `/register`
+**When** the user submits the form with a password that does not meet security requirements (e.g., too short, missing a number, or missing a special character)
+**Then** an inline error message is displayed beneath the password field describing the specific requirement that was not met, and the form is not submitted
 
-**Given** I am on the registration form  
-**When** I enter a password that does not meet the security requirements (e.g., fewer than 8 characters, no number, or no special character)  
-**And** I click the "Register" button  
-**Then** I see an inline error message describing the unmet requirement  
-**And** the form is not submitted  
+### Story 4: Duplicate or Invalid Email
+**Given** a user is on the registration page at `/register`
+**When** the user submits the form with an email address that is already registered (case-insensitive) or with an invalid email format
+**Then** an appropriate inline error message is displayed beneath the email field, and the form is not submitted
 
----
-
-### Story 4: Duplicate Email Error
-
-**Given** I am on the registration form  
-**When** I enter an email address that is already associated with an existing account  
-**And** I click the "Register" button  
-**Then** I see an error message: *"This email address is already in use."*  
-**And** the form is not submitted  
-
----
-
-### Story 5: Required Field Validation
-
-**Given** I am on the registration form  
-**When** I submit the form without filling in one or more required fields  
-**Then** I see inline error messages for each empty required field  
-**And** the form is not submitted  
-
----
-
-### Story 6: Password Mismatch
-
-**Given** I am on the registration form  
-**When** I enter a Password and a Confirm Password that do not match  
-**And** I click the "Register" button  
-**Then** I see an inline error: *"Passwords do not match."*  
-**And** the form is not submitted  
+### Story 5: Empty Required Fields
+**Given** a user is on the registration page at `/register`
+**When** the user submits the form without filling in one or more required fields
+**Then** inline error messages are displayed beneath each empty required field indicating that the field is required, and the form is not submitted
 
 ---
 
@@ -112,39 +74,36 @@ As a user, I want to create an account so that I can save my shopping preference
 
 | # | Criterion | Priority |
 |---|-----------|----------|
-| AC-1 | Registration form is accessible from the auth/login page via a "Sign Up" link | Must Have |
-| AC-2 | Form contains fields: Full Name, Email, Password, Confirm Password | Must Have |
-| AC-3 | Password must be ≥ 8 characters, contain a number, and contain a special character | Must Have |
-| AC-4 | Confirm Password must match Password | Must Have |
-| AC-5 | Successful registration triggers a confirmation email to the user | Must Have |
-| AC-6 | Success message is shown after registration | Must Have |
-| AC-7 | Duplicate email shows error: "This email address is already in use." | Must Have |
-| AC-8 | All required fields show inline validation errors when empty on submit | Must Have |
-| AC-9 | Invalid email format shows appropriate error | Must Have |
-| AC-10 | Password mismatch shows: "Passwords do not match." | Must Have |
-| AC-11 | Registration page has a link back to the login page | Should Have |
+| AC-1 | User can navigate to `/register` by clicking "Sign Up Now!" on the login page | Must |
+| AC-2 | Registration form contains fields for Full Name, Email, Password, and Confirm Password | Must |
+| AC-3 | Password must be at least 8 characters, contain a number and a special character | Must |
+| AC-4 | Confirm Password must match Password; an error is shown if they do not match | Must |
+| AC-5 | Successful registration saves data to localStorage and shows a UI success message | Must |
+| AC-6 | User is redirected to `/auth` 2 seconds after successful registration | Must |
+| AC-7 | Duplicate email check is case-insensitive; an error is shown if email is already in use | Must |
+| AC-8 | Inline validation error messages are shown for all invalid or empty fields | Must |
 
 ---
 
 ## Assumptions
 
-1. **No backend API exists yet** — the current app uses `localStorage` for auth state. The registration flow will simulate the confirmation email (e.g., log to console or show a mock success state) and store the user in `localStorage`. A real email service integration is out of scope for this ticket.
-2. **Email uniqueness check** will be performed against users stored in `localStorage` (no server-side check).
-3. **Auto-login after registration is NOT performed** — the user must use the login form after confirming their email (simulated by showing a success message).
-4. **The existing `/auth` route** will be extended to support a toggle between Login and Register views (no new route required unless the team prefers a separate `/register` route).
-5. **Confirmation email** is simulated — no real email service (e.g., SendGrid, SES) is integrated in this ticket.
-6. **The existing `AuthProvider` context** will be extended to handle registration state and actions.
+| ID | Assumption |
+|----|-----------|
+| A-1 | No real backend API exists. Registration data is persisted to localStorage under the key `registeredUsers`. |
+| A-2 | Confirmation email is simulated via a UI success message only; no actual email is sent. |
+| A-3 | Duplicate email check is case-insensitive. |
+| A-4 | Registration page route is `/register`. |
+| A-5 | User is redirected to `/auth` after 2 seconds on successful registration. |
+| A-6 | Full name field requires a minimum of 2 characters. |
 
 ---
 
 ## Out of Scope
 
-- Social login (Google, Facebook, etc.)
-- Email verification link handling / token-based confirmation
-- Real email delivery service integration
-- Password strength meter UI
-- CAPTCHA / bot protection
-- Account management / profile editing
-- Forgot password flow (separate ticket)
-- Backend API integration (future ticket)
-- Multi-factor authentication (MFA)
+- Real backend API integration or server-side user persistence
+- Actual email delivery or email verification flow
+- OAuth or third-party authentication (Google, Facebook, etc.)
+- Account management (profile editing, password reset)
+- Email uniqueness enforced server-side
+- CAPTCHA or bot protection
+- Multi-step registration wizard

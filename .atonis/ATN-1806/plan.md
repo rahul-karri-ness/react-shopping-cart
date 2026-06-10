@@ -1,251 +1,374 @@
-# Plan: ATN-1806 — Account Creation / User Registration
+# ATN-1806 - Implementation Plan
 
 ## Overview
 
-This plan describes the implementation approach for the User Registration feature in the React Shopping Cart application. It covers all phases, API contracts, data model changes, files to create/modify, and explicit compliance with project guardrails.
+Implement user registration for the react-shopping-cart application. No new npm dependencies are required. All work follows existing patterns: Formik + Yup validation, Context API + useReducer, Field + Input component, AuthLayout, RouteWrapper, and SCSS partials.
 
 ---
 
 ## Implementation Phases
 
-### Phase 1 — Auth Context Extension
-Extend `src/contexts/auth.jsx` to support registration state and actions.
+### Phase 1: Add passwordRegExp Constant
 
-**Changes:**
-- Add `isRegistering` and `registrationSuccess` to `initialState`.
-- Add `REGISTER_REQUEST`, `REGISTER_SUCCESS`, `REGISTER_FAILURE` cases to the reducer.
-- Add `register(dispatch, userData, registeredUsers)` action creator that:
-  1. Checks if email already exists in `registeredUsers` array (from `localStorage`).
-  2. If duplicate: dispatches `REGISTER_FAILURE` with error payload.
-  3. If unique: dispatches `REGISTER_SUCCESS`, stores new user in `registeredUsers` array in `localStorage`.
-- Simulates confirmation email by logging to console: `console.info("Confirmation email sent to:", email)`.
+**File:** `src/constants/common.js`
 
----
+Add a `passwordRegExp` export alongside the existing `phoneRegExp`:
 
-### Phase 2 — Constants Update
-Add password validation regex to `src/constants/common.js`.
-
-**Changes:**
-- Export `passwordRegExp` for use in Yup schema.
-
----
-
-### Phase 3 — Registration Form Component
-Create `src/components/RegisterForm.jsx` — a self-contained Formik registration form.
-
-**Fields:**
-| Field | Type | Validation |
-|-------|------|-----------|
-| name | text | Required, min 2 chars |
-| email | email | Required, valid email format |
-| password | password | Required, ≥8 chars, ≥1 digit, ≥1 special char |
-| confirmPassword | password | Required, must match `password` |
-
-**Yup Schema (`RegisterSchema`):**
 ```js
-Yup.object().shape({
-  name: Yup.string().min(2, "Name must be at least 2 characters.").required("Full name is required."),
-  email: Yup.string().email("Please enter a valid email address.").required("Email is required."),
-  password: Yup.string()
-    .min(8, "Password must be at least 8 characters.")
-    .matches(/[0-9]/, "Password must contain at least one number.")
-    .matches(/[!@#$%^&*]/, "Password must contain at least one special character (!@#$%^&*).")
-    .required("Password is required."),
-  confirmPassword: Yup.string()
-    .oneOf([Yup.ref("password"), null], "Passwords do not match.")
-    .required("Please confirm your password.")
-})
+export const passwordRegExp = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/;
 ```
 
-**On Submit:**
-- Call `register(authDispatch, { name, email, password }, registeredUsers)`.
-- On success: show inline success message (no redirect; user must log in separately).
-- On failure (duplicate email): show field-level error via `setFieldError("email", "This email address is already in use.")`.
+This regex enforces:
+- At least one digit (`(?=.*[0-9])`)
+- At least one special character from the set `!@#$%^&*` (`(?=.*[!@#$%^&*])`)
+- Minimum 8 characters total
 
 ---
 
-### Phase 4 — Auth Page Update
-Update `src/pages/auth.jsx` to support view toggling between Login and Register.
+### Phase 2: Extend Auth Context
 
-**Changes:**
-- Add `const [view, setView] = React.useState("login")` local state.
-- Implement `goToRegister`: `setView("register")`.
-- Add `goToLogin`: `setView("login")`.
-- Conditionally render `<RegisterForm onSwitchToLogin={goToLogin} />` or the existing Login Formik form based on `view`.
-- Remove `console.log("location => ", location)` debug statement (line 19).
+**File:** `src/contexts/auth.jsx`
 
----
-
-### Phase 5 — SCSS Updates
-Update `src/assets/scss/pages/_auth.scss` to add styles for:
-- `.auth-success` — success message styling (green background, icon).
-- `.auth-toggle-link` — consistent link styling for view toggle.
-
----
-
-### Phase 6 — Tests
-Write unit tests for all new and modified components/modules (TDD order — tests first).
-
-**Test files to create:**
-- `src/contexts/auth.test.js` — tests for reducer and action creators including registration.
-- `src/components/RegisterForm.test.jsx` — tests for form rendering, validation, submission.
-- `src/pages/auth.test.jsx` — tests for view toggling between login and register.
-
----
-
-## API Contracts
-
-> **Note:** No real backend API exists. The following describes the simulated contract for future backend integration.
-
-### POST /api/auth/register (Future)
-**Request Body:**
-```json
-{
-  "name": "string",
-  "email": "string",
-  "password": "string"
-}
-```
-
-**Success Response (201):**
-```json
-{
-  "message": "Registration successful. Please check your email to confirm your account.",
-  "userId": "string"
-}
-```
-
-**Error Response (409 — Duplicate Email):**
-```json
-{
-  "error": "EMAIL_ALREADY_IN_USE",
-  "message": "This email address is already in use."
-}
-```
-
-**Error Response (400 — Validation):**
-```json
-{
-  "error": "VALIDATION_ERROR",
-  "fields": {
-    "email": "Please enter a valid email address.",
-    "password": "Password must be at least 8 characters."
-  }
-}
-```
-
-> **Current Implementation:** All of the above is simulated client-side using `localStorage`.
-
----
-
-## Data Model Changes
-
-### Registered Users (localStorage key: `"registeredUsers"`)
-```js
-// Array of user objects
-[
-  {
-    id: "uuid-or-timestamp",   // unique identifier
-    name: "string",
-    email: "string",           // used as unique key
-    password: "string",        // NOTE: plain text — acceptable for mock only; must be hashed in production
-    createdAt: "ISO-8601"
-  }
-]
-```
-
-### Auth State Extension (`src/contexts/auth.jsx`)
+**2a. Extend initialState:**
 ```js
 const initialState = {
   isLoggedIn: false,
   user: null,
   isLoggingIn: false,
-  isRegistering: false,       // NEW
-  registrationSuccess: false, // NEW
-  registrationError: null     // NEW
+  isRegistering: false,
+  registrationSuccess: false,
+  registrationError: null
+};
+```
+
+**2b. Add reducer cases:**
+```js
+case "REGISTER_REQUEST":
+  return {
+    ...state,
+    isRegistering: true,
+    registrationSuccess: false,
+    registrationError: null
+  };
+case "REGISTER_SUCCESS":
+  return {
+    ...state,
+    isRegistering: false,
+    registrationSuccess: true,
+    registrationError: null
+  };
+case "REGISTER_FAILURE":
+  return {
+    ...state,
+    isRegistering: false,
+    registrationSuccess: false,
+    registrationError: action.payload.error
+  };
+```
+
+**2c. Add register action creator:**
+```js
+export const register = (dispatch, userData) => {
+  dispatch({ type: "REGISTER_REQUEST" });
+  try {
+    // Read existing registered users (case-insensitive duplicate check)
+    const existing = JSON.parse(localStorage.getItem("registeredUsers") || "[]");
+    const duplicate = existing.some(
+      (u) => u.email.toLowerCase() === userData.email.toLowerCase()
+    );
+    if (duplicate) {
+      dispatch({
+        type: "REGISTER_FAILURE",
+        payload: { error: "Email address is already in use." }
+      });
+      return { success: false, error: "Email address is already in use." };
+    }
+    // Persist new user (store email in lowercase for consistency)
+    const newUser = { ...userData, email: userData.email.toLowerCase() };
+    localStorage.setItem("registeredUsers", JSON.stringify([...existing, newUser]));
+    dispatch({ type: "REGISTER_SUCCESS" });
+    return { success: true };
+  } catch (err) {
+    dispatch({
+      type: "REGISTER_FAILURE",
+      payload: { error: "Registration failed. Please try again." }
+    });
+    return { success: false, error: "Registration failed. Please try again." };
+  }
 };
 ```
 
 ---
 
-## Files to Create
+### Phase 3: Create RegisterPage Component
 
-| File | Purpose |
-|------|---------|
-| `src/components/RegisterForm.jsx` | New registration form component |
-| `src/contexts/auth.test.js` | Unit tests for auth context (reducer + action creators) |
-| `src/components/RegisterForm.test.jsx` | Unit tests for RegisterForm component |
-| `src/pages/auth.test.jsx` | Unit tests for AuthPage view toggling |
+**File:** `src/pages/register.jsx`
+
+```jsx
+import React, { useContext, useState } from "react";
+import { Formik, Form, Field } from "formik";
+import { useHistory } from "react-router-dom";
+import * as Yup from "yup";
+import { AuthDispatchContext, register } from "contexts/auth";
+import { passwordRegExp } from "constants/common";
+import Input from "components/core/form-controls/Input";
+
+// Yup schema — mirrors LoginSchema pattern from src/pages/auth.jsx
+const RegisterSchema = Yup.object().shape({
+  fullName: Yup.string()
+    .min(2, "Full name must be at least 2 characters.")
+    .required("Full name is required."),
+  email: Yup.string()
+    .email("Please enter a valid email address.")
+    .required("Email address is required."),
+  password: Yup.string()
+    .matches(
+      passwordRegExp,
+      "Password must be at least 8 characters and include a number and a special character (!@#$%^&*)."
+    )
+    .required("Password is required."),
+  confirmPassword: Yup.string()
+    .oneOf([Yup.ref("password"), null], "Passwords do not match.")
+    .required("Please confirm your password.")
+});
+
+const RegisterPage = () => {
+  const authDispatch = useContext(AuthDispatchContext);
+  const history = useHistory();
+  const [submitError, setSubmitError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
+
+  const handleRegisterSuccess = () => {
+    setSuccessMessage(
+      "Registration successful! A confirmation email has been sent. Redirecting to login..."
+    );
+    // Redirect to /auth after 2 seconds (assumption A-5)
+    setTimeout(() => {
+      history.push("/auth");
+    }, 2000);
+  };
+
+  return (
+    <Formik
+      initialValues={{
+        fullName: "",
+        email: "",
+        password: "",
+        confirmPassword: ""
+      }}
+      validationSchema={RegisterSchema}
+      onSubmit={async (values, { resetForm, setFieldError }) => {
+        setSubmitError(null);
+        const result = register(authDispatch, {
+          fullName: values.fullName,
+          email: values.email,
+          password: values.password
+        });
+        if (result.success) {
+          resetForm();
+          handleRegisterSuccess();
+        } else {
+          // Surface duplicate email error on the email field
+          if (result.error && result.error.toLowerCase().includes("email")) {
+            setFieldError("email", result.error);
+          } else {
+            setSubmitError(result.error || "Registration failed. Please try again.");
+          }
+        }
+      }}
+    >
+      {() => (
+        <Form>
+          <h2 className="register-title">Create Account</h2>
+
+          {successMessage && (
+            <div className="register-success" role="alert">
+              {successMessage}
+            </div>
+          )}
+
+          {submitError && (
+            <div className="register-error" role="alert">
+              {submitError}
+            </div>
+          )}
+
+          <Field
+            name="fullName"
+            type="text"
+            label="Full Name"
+            placeholder="Full Name"
+            component={Input}
+          />
+          <Field
+            name="email"
+            type="email"
+            label="Email Address"
+            placeholder="Email Address"
+            component={Input}
+          />
+          <Field
+            name="password"
+            type="password"
+            label="Password"
+            placeholder="Password"
+            component={Input}
+          />
+          <Field
+            name="confirmPassword"
+            type="password"
+            label="Confirm Password"
+            placeholder="Confirm Password"
+            component={Input}
+          />
+
+          <button type="submit" className="auth-button block">
+            Create Account
+          </button>
+
+          <p>
+            Already have an account?{" "}
+            <a
+              href="/#"
+              onClick={(e) => {
+                e.preventDefault();
+                history.push("/auth");
+              }}
+            >
+              Sign In
+            </a>
+          </p>
+        </Form>
+      )}
+    </Formik>
+  );
+};
+
+export default RegisterPage;
+```
 
 ---
 
-## Files to Modify
+### Phase 4: Add /register Route in App.js
 
-| File | Change Summary |
-|------|---------------|
-| `src/contexts/auth.jsx` | Add registration state, reducer cases, and `register` action creator |
-| `src/pages/auth.jsx` | Add view toggle, wire RegisterForm, remove debug log |
-| `src/constants/common.js` | Add `passwordRegExp` export |
-| `src/assets/scss/pages/_auth.scss` | Add `.auth-success` and `.auth-toggle-link` styles |
+**File:** `src/App.js`
+
+Add import for `RegisterPage` and a new `RouteWrapper` entry:
+
+```jsx
+import RegisterPage from "pages/register";
+
+// Inside <Switch>:
+<RouteWrapper
+  path="/register"
+  component={RegisterPage}
+  layout={AuthLayout}
+/>
+```
+
+The route must be placed before the `/auth` route to avoid catch-all conflicts.
+
+---
+
+### Phase 5: Wire goToRegister Navigation
+
+**File:** `src/pages/auth.jsx`
+
+Replace the no-op `goToRegister` stub (lines 24-26) with:
+
+```js
+const goToRegister = (e) => {
+  e.preventDefault();
+  history.push("/register");
+};
+```
+
+Also remove the debug `console.log` on line 19.
+
+---
+
+### Phase 6: Create _register.scss
+
+**File:** `src/assets/scss/pages/_register.scss`
+
+```scss
+.register-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 24px;
+  color: $gray-dark;
+}
+
+.register-success {
+  background: $green-light-bg;
+  color: $primary-green;
+  border-radius: 4px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  text-align: left;
+}
+
+.register-error {
+  background: rgba(226, 61, 61, 0.1);
+  color: $red;
+  border-radius: 4px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  text-align: left;
+}
+```
+
+**File:** `src/assets/scss/pages/_index.scss`
+
+Add `@import "register";` after the existing imports.
+
+---
+
+## API Contracts
+
+No external API calls. All data operations are client-side via `localStorage`.
+
+### localStorage Schema
+
+**Key:** `registeredUsers`
+**Type:** JSON array
+**Entry shape:**
+```json
+{
+  "fullName": "string",
+  "email": "string (lowercase)",
+  "password": "string"
+}
+```
+
+---
+
+## Data Model Changes
+
+| Location | Change |
+|----------|--------|
+| `src/contexts/auth.jsx` — `initialState` | Add `isRegistering: false`, `registrationSuccess: false`, `registrationError: null` |
+| localStorage key `registeredUsers` | New key; array of `{ fullName, email, password }` objects |
 
 ---
 
 ## Guardrail Compliance Matrix
 
-| Guardrail | Source | Compliance Approach |
-|-----------|--------|-------------------|
-| Follow consistent coding standards (ESLint) | Best Practices Doc | All new code follows existing ESLint config (`react-app`); no new rules introduced |
-| Use functional components and React hooks | Best Practices Doc | `RegisterForm` is a functional component; `useState` used for view toggle |
-| Ensure all components are modular and reusable | Best Practices Doc | `RegisterForm` is extracted as a standalone component, reusable independently |
-| Sanitize user inputs to prevent XSS | Best Practices Doc | Yup validation sanitizes/validates all inputs; React's JSX escapes output by default |
-| Store sensitive data securely | Best Practices Doc | Documented that plain-text password in `localStorage` is mock-only; production must hash |
-| Write unit tests for all components and hooks | Best Practices Doc | Tests created for `auth.jsx` context, `RegisterForm`, and `AuthPage` |
-| Implement integration tests for critical user flows | Best Practices Doc | Auth page test covers the full registration flow end-to-end |
-| Display user-friendly error messages | Best Practices Doc | All Yup errors and duplicate-email errors are user-friendly inline messages |
-| Log errors to monitoring service | Best Practices Doc | `console.error` used for caught errors; noted that Sentry integration is future work |
-| Use ARIA attributes for accessibility | Best Practices Doc | `Input` component uses `htmlFor`/`id` pairing; form labels included |
-| Ensure keyboard navigability | Best Practices Doc | All form fields and buttons are native HTML elements — keyboard navigable by default |
-| No dead code / debug artifacts | Definition of Done | `console.log` in `auth.jsx` line 19 removed |
-| No secrets or API keys hardcoded | Definition of Done | No secrets; `localStorage` keys are non-sensitive |
-| Errors handled gracefully | Definition of Done | `try/catch` in form `onSubmit`; field-level errors via `setFieldError` |
-| All tests pass | Definition of Done | Stale `App.test.js` test updated to reflect actual app content |
-| No regression introduced | Definition of Done | Login flow unchanged; only additive changes to auth context and page |
-| New code follows existing architectural patterns | Definition of Done | Split context pattern, Formik+Yup, action creator pattern all followed |
-
----
-
-## Key Architectural Decisions
-
-### Decision 1: Toggle View vs. Separate Route
-**Options considered:**
-- A) Toggle between Login/Register within `/auth` using local `useState`
-- B) Add a separate `/register` route
-
-**Decision:** Option A — Toggle within `/auth`.  
-**Rationale:** The existing `goToRegister` stub in `auth.jsx` (line 24) already implies this pattern. No new route, no changes to `App.js`, minimal surface area change.
-
----
-
-### Decision 2: RegisterForm as Separate Component vs. Inline JSX
-**Options considered:**
-- A) Inline JSX in `auth.jsx`
-- B) Separate `RegisterForm.jsx` component
-
-**Decision:** Option B — Separate component.  
-**Rationale:** Follows the modularity guardrail; makes the component independently testable; keeps `auth.jsx` readable.
-
----
-
-### Decision 3: Registered Users Storage
-**Options considered:**
-- A) Store in same `"user"` localStorage key
-- B) Store in separate `"registeredUsers"` array key
-
-**Decision:** Option B — Separate `"registeredUsers"` key.  
-**Rationale:** Keeps the logged-in user state separate from the registry of all registered users. Avoids data collision.
-
----
-
-### Decision 4: Auto-login After Registration
-**Decision:** No auto-login.  
-**Rationale:** AC-5 requires a confirmation email step. Auto-login would bypass this. User must log in after registration.
+| # | Guardrail | Compliance |
+|---|-----------|-----------|
+| G-1 | No new npm dependencies | Compliant — all libraries already in package.json |
+| G-2 | Follow Formik + Yup validation pattern | Compliant — RegisterSchema mirrors LoginSchema; Field + Input pattern used |
+| G-3 | Follow Context API + useReducer pattern | Compliant — REGISTER_REQUEST/SUCCESS/FAILURE added to existing reducer |
+| G-4 | Follow AuthLayout for auth pages | Compliant — /register route uses AuthLayout via RouteWrapper |
+| G-5 | Follow SCSS partial pattern | Compliant — _register.scss created and imported in _index.scss |
+| G-6 | No real backend; localStorage persistence | Compliant — registeredUsers key in localStorage |
+| G-7 | Case-insensitive duplicate email check | Compliant — email.toLowerCase() comparison in register action creator |
+| G-8 | Password min 8 chars, 1 number, 1 special char | Compliant — passwordRegExp enforced via Yup .matches() |
+| G-9 | Full name min 2 characters | Compliant — Yup .min(2) on fullName field |
+| G-10 | Redirect to /auth after 2 seconds on success | Compliant — setTimeout 2000ms + history.push("/auth") |
+| G-11 | Inline error messages for all invalid fields | Compliant — Input component renders .invalid-feedback on touched + error |
+| G-12 | No dead code, no debug artifacts | Compliant — console.log removed from auth.jsx; no commented-out code |
+| G-13 | Functional components with hooks only | Compliant — RegisterPage is a functional component using useContext, useState, useHistory |
+| G-14 | Error messages are user-facing and meaningful | Compliant — all Yup messages and action creator errors are descriptive |
